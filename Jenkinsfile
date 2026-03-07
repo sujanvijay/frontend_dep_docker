@@ -5,9 +5,14 @@ pipeline {
         githubPush()
     }
 
+    environment {
+        IMAGE_NAME = "sujanvijay/frontendapp"
+        CONTAINER_NAME = "frontend-container"
+    }
+
     stages {
-        
-        stage('Checkout') {
+
+        stage('Checkout Code') {
             steps {
                 git branch: 'main',
                     credentialsId: 'sujan',
@@ -15,10 +20,26 @@ pipeline {
             }
         }
 
-        stage('Install') {
+        stage('Build Maven Package') {
             steps {
-                sh 'mvn clean install'
+                sh 'mvn clean package -DskipTests'
             }
         }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t $IMAGE_NAME .'
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                sh '''
+                docker rm -f $CONTAINER_NAME || true
+                docker run -d -p 8080:8080 --name $CONTAINER_NAME $IMAGE_NAME
+                '''
+            }
+        }
+
     }
 }
