@@ -7,7 +7,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "sujanvijay/frontendapp"
-        CONTAINER_NAME = "frontend-container"
+        TAG = "${BUILD_NUMBER}"
     }
 
     stages {
@@ -28,18 +28,25 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $IMAGE_NAME .'
+                sh 'docker build -t $IMAGE_NAME:$TAG .'
             }
         }
 
-        stage('Run Docker Container') {
+        stage('Push Docker Image') {
             steps {
-                sh '''
-                docker rm -f $CONTAINER_NAME || true
-                docker run -d -p 8001:8080 --name $CONTAINER_NAME $IMAGE_NAME
-                '''
+                withDockerRegistry([credentialsId: 'dockerhub-cred', url: '']) {
+                    sh 'docker push $IMAGE_NAME:$TAG'
+                }
             }
         }
 
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh """
+                kubectl set image deployment/frontend-deployment \
+                frontend=$IMAGE_NAME:$TAG
+                """
+            }
+        }
     }
 }
