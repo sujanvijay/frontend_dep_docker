@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Sujan Vijay | DevOps Engineer</title>
+<title>Sujan Vijay K| DevOps Engineer</title>
 
 <style>
 
